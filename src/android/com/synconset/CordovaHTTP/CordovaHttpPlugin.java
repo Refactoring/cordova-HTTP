@@ -54,33 +54,37 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
+            String jsonData = args.getString(3);
             HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpGet get = new CordovaHttpGet(urlString, paramsMap, headersMap, callbackContext);
+            CordovaHttpGet get = new CordovaHttpGet(urlString, paramsMap, headersMap, jsonData, callbackContext);
             cordova.getThreadPool().execute(get);
         } else if (action.equals("post")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
+            String jsonData = args.getString(3);
             HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpPost post = new CordovaHttpPost(urlString, paramsMap, headersMap, callbackContext);
+            CordovaHttpPost post = new CordovaHttpPost(urlString, paramsMap, headersMap, jsonData, callbackContext);
             cordova.getThreadPool().execute(post);
         } else if (action.equals("put")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
+            String jsonData = args.getString(3);
             HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpPut put = new CordovaHttpPut(urlString, paramsMap, headersMap, callbackContext);
+            CordovaHttpPut put = new CordovaHttpPut(urlString, paramsMap, headersMap, jsonData, callbackContext);
             cordova.getThreadPool().execute(put);
         } else if (action.equals("delete")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
+            String jsonData = args.getString(3);
             HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpDelete delete = new CordovaHttpDelete(urlString, paramsMap, headersMap, callbackContext);
+            CordovaHttpDelete delete = new CordovaHttpDelete(urlString, paramsMap, headersMap, jsonData, callbackContext);
             cordova.getThreadPool().execute(delete);
         } else if (action.equals("useBasicAuth")) {
             String username = args.getString(0);

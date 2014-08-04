@@ -24,7 +24,7 @@ public class CordovaHttpDownload extends CordovaHttp implements Runnable {
     private String filePath;
     
     public CordovaHttpDownload(String urlString, Map<?, ?> params, Map<String, String> headers, CallbackContext callbackContext, String filePath) {
-        super(urlString, params, headers, callbackContext);
+        super(urlString, params, headers, "", callbackContext);
         this.filePath = filePath;
     }
     

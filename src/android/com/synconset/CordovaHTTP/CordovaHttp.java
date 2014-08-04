@@ -39,15 +39,17 @@ public abstract class CordovaHttp {
     private String urlString;
     private Map<?, ?> params;
     private Map<String, String> headers;
+    private String jsonData;
     private CallbackContext callbackContext;
     
-    public CordovaHttp(String urlString, Map<?, ?> params, Map<String, String> headers, CallbackContext callbackContext) {
+    public CordovaHttp(String urlString, Map<?, ?> params, Map<String, String> headers, String jsonData, CallbackContext callbackContext) {
         this.urlString = urlString;
         this.params = params;
         this.headers = headers;
+        this.jsonData = jsonData;
         this.callbackContext = callbackContext;
     }
-    
+
     public static void enableSSLPinning(boolean enable) {
         sslPinning.set(enable);
         if (enable) {
@@ -72,6 +74,10 @@ public abstract class CordovaHttp {
     
     protected Map<String, String> getHeaders() {
         return this.headers;
+    } 
+    
+    protected String getJSONData() {
+        return this.jsonData;
     }
     
     protected CallbackContext getCallbackContext() {
