@@ -36,17 +36,17 @@ var http = {
     acceptAllCerts: function(allow, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "acceptAllCerts", [allow]);
     },
-    post: function(url, params, headers, json, success, failure) {
-        return exec(success, failure, "CordovaHttpPlugin", "post", [url, params, headers, json]);
+    post: function(url, params, headers, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "post", [url, params, headers]);
     },
-    get: function(url, params, headers, json, success, failure) {
-        return exec(success, failure, "CordovaHttpPlugin", "get", [url, params, headers, json]);
+    get: function(url, params, headers, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "get", [url, params, headers]);
     },
-    put: function(url, params, headers, json, success, failure) {
-        return exec(success, failure, "CordovaHttpPlugin", "put", [url, params, headers, json]);
+    put: function(url, params, headers, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "put", [url, params, headers]);
     },
-    deleteHttp: function(url, params, headers, json, success, failure) {
-        return exec(success, failure, "CordovaHttpPlugin", "delete", [url, params, headers, json]);
+    deleteHttp: function(url, params, headers, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "delete", [url, params, headers]);
     },
     uploadFile: function(url, params, headers, filePath, name, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "uploadFile", [url, params, headers, filePath, name]);

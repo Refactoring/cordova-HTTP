@@ -3,50 +3,34 @@
  */
 package com.synconset;
 
+import com.github.kevinsawicki.http.HttpRequest;
 import org.apache.cordova.CallbackContext;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.HostnameVerifier;
-
-import java.util.Iterator;
-
-import android.util.Log;
-
-import com.github.kevinsawicki.http.HttpRequest;
- 
 public abstract class CordovaHttp {
     protected static final String TAG = "CordovaHTTP";
     protected static final String CHARSET = "UTF-8";
-    
+
     private static AtomicBoolean sslPinning = new AtomicBoolean(false);
     private static AtomicBoolean acceptAllCerts = new AtomicBoolean(false);
-    
+
     private String urlString;
-    private Map<?, ?> params;
+    private JSONObject params;
+    private Map<?, ?> paramsMap;
     private Map<String, String> headers;
-    private String jsonData;
     private CallbackContext callbackContext;
-    
-    public CordovaHttp(String urlString, Map<?, ?> params, Map<String, String> headers, String jsonData, CallbackContext callbackContext) {
+
+    public CordovaHttp(String urlString, JSONObject params, Map<String, String> headers, CallbackContext callbackContext) throws JSONException {
         this.urlString = urlString;
         this.params = params;
+        this.paramsMap = getMapFromJSONObject(params);
         this.headers = headers;
-        this.jsonData = jsonData;
         this.callbackContext = callbackContext;
     }
 
@@ -56,34 +40,34 @@ public abstract class CordovaHttp {
             acceptAllCerts.set(false);
         }
     }
-    
+
     public static void acceptAllCerts(boolean accept) {
         acceptAllCerts.set(accept);
         if (accept) {
             sslPinning.set(false);
         }
     }
-    
+
     protected String getUrlString() {
         return this.urlString;
     }
-    
-    protected Map<?, ?> getParams() {
+
+    protected JSONObject getParams() {
         return this.params;
     }
-    
+
+    protected Map<?, ?> getParamsMap() {
+        return this.paramsMap;
+    }
+
     protected Map<String, String> getHeaders() {
         return this.headers;
-    } 
-    
-    protected String getJSONData() {
-        return this.jsonData;
     }
-    
+
     protected CallbackContext getCallbackContext() {
         return this.callbackContext;
     }
-    
+
     protected HttpRequest setupSecurity(HttpRequest request) {
         if (acceptAllCerts.get()) {
             request.trustAllCerts();
@@ -94,7 +78,7 @@ public abstract class CordovaHttp {
         }
         return request;
     }
-    
+
     protected void respondWithError(int status, String msg) {
         try {
             JSONObject response = new JSONObject();
@@ -105,8 +89,19 @@ public abstract class CordovaHttp {
             this.callbackContext.error(msg);
         }
     }
-    
+
     protected void respondWithError(String msg) {
         this.respondWithError(500, msg);
+    }
+
+    private HashMap<String, Object> getMapFromJSONObject(JSONObject object) throws JSONException {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        Iterator<?> i = object.keys();
+
+        while (i.hasNext()) {
+            String key = (String) i.next();
+            map.put(key, object.get(key));
+        }
+        return map;
     }
 }

@@ -3,26 +3,9 @@
  */
 package com.synconset;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.HostnameVerifier;
-
+import android.content.res.AssetManager;
+import android.util.Base64;
+import com.github.kevinsawicki.http.HttpRequest;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -31,17 +14,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.res.AssetManager;
-import android.util.Base64;
-import android.util.Log;
-
-import com.github.kevinsawicki.http.HttpRequest;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class CordovaHttpPlugin extends CordovaPlugin {
     private static final String TAG = "CordovaHTTP";
-    
+
     private HashMap<String, String> globalHeaders;
-    
+
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -54,37 +39,29 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            String jsonData = args.getString(3);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpGet get = new CordovaHttpGet(urlString, paramsMap, headersMap, jsonData, callbackContext);
+            CordovaHttpGet get = new CordovaHttpGet(urlString, params, headersMap, callbackContext);
             cordova.getThreadPool().execute(get);
         } else if (action.equals("post")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            String jsonData = args.getString(3);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpPost post = new CordovaHttpPost(urlString, paramsMap, headersMap, jsonData, callbackContext);
+            CordovaHttpPost post = new CordovaHttpPost(urlString, params, headersMap, callbackContext);
             cordova.getThreadPool().execute(post);
         } else if (action.equals("put")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            String jsonData = args.getString(3);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpPut put = new CordovaHttpPut(urlString, paramsMap, headersMap, jsonData, callbackContext);
+            CordovaHttpPut put = new CordovaHttpPut(urlString, params, headersMap, callbackContext);
             cordova.getThreadPool().execute(put);
         } else if (action.equals("delete")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            String jsonData = args.getString(3);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
-            CordovaHttpDelete delete = new CordovaHttpDelete(urlString, paramsMap, headersMap, jsonData, callbackContext);
+            CordovaHttpDelete delete = new CordovaHttpDelete(urlString, params, headersMap, callbackContext);
             cordova.getThreadPool().execute(delete);
         } else if (action.equals("useBasicAuth")) {
             String username = args.getString(0);
@@ -96,7 +73,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
                 boolean enable = args.getBoolean(0);
                 this.enableSSLPinning(enable);
                 callbackContext.success();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 callbackContext.error("There was an error setting up ssl pinning");
             }
@@ -112,20 +89,18 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
             String filePath = args.getString(3);
             String name = args.getString(4);
-            CordovaHttpUpload upload = new CordovaHttpUpload(urlString, paramsMap, headersMap, callbackContext, filePath, name);
+            CordovaHttpUpload upload = new CordovaHttpUpload(urlString, params, headersMap, callbackContext, filePath, name);
             cordova.getThreadPool().execute(upload);
         } else if (action.equals("downloadFile")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);
             JSONObject headers = args.getJSONObject(2);
-            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
             HashMap<String, String> headersMap = this.addToMap(this.globalHeaders, headers);
             String filePath = args.getString(3);
-            CordovaHttpDownload download = new CordovaHttpDownload(urlString, paramsMap, headersMap, callbackContext, filePath);
+            CordovaHttpDownload download = new CordovaHttpDownload(urlString, params, headersMap, callbackContext, filePath);
             cordova.getThreadPool().execute(download);
         } else {
             return false;
@@ -138,11 +113,11 @@ public class CordovaHttpPlugin extends CordovaPlugin {
         loginInfo = "Basic " + Base64.encodeToString(loginInfo.getBytes(), Base64.NO_WRAP);
         this.globalHeaders.put("Authorization", loginInfo);
     }
-    
+
     private void setHeader(String header, String value) {
         this.globalHeaders.put(header, value);
     }
-    
+
     private void enableSSLPinning(boolean enable) throws GeneralSecurityException, IOException {
         if (enable) {
             AssetManager assetManager = cordova.getActivity().getAssets();
@@ -157,7 +132,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
                     }
                 }
             }
-            
+
             for (int i = 0; i < cerFiles.size(); i++) {
                 InputStream in = cordova.getActivity().getAssets().open(cerFiles.get(i));
                 InputStream caInput = new BufferedInputStream(in);
@@ -168,26 +143,15 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             CordovaHttp.enableSSLPinning(false);
         }
     }
-    
+
     private HashMap<String, String> addToMap(HashMap<String, String> map, JSONObject object) throws JSONException {
-        HashMap<String, String> newMap = (HashMap<String, String>)map.clone();
+        HashMap<String, String> newMap = (HashMap<String, String>) map.clone();
         Iterator<?> i = object.keys();
-        
+
         while (i.hasNext()) {
-            String key = (String)i.next();
+            String key = (String) i.next();
             newMap.put(key, object.getString(key));
         }
         return newMap;
-    }
-    
-    private HashMap<String, Object> getMapFromJSONObject(JSONObject object) throws JSONException {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        Iterator<?> i = object.keys();
-        
-        while(i.hasNext()) {
-            String key = (String)i.next();
-            map.put(key, object.get(key));
-        }
-        return map;
     }
 }

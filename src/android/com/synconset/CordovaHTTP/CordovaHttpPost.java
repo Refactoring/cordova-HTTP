@@ -3,23 +3,20 @@
  */
 package com.synconset;
 
-import java.net.UnknownHostException;
-import java.util.Map;
-
+import com.github.kevinsawicki.http.HttpRequest;
+import com.github.kevinsawicki.http.HttpRequest.HttpRequestException;
 import org.apache.cordova.CallbackContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
+import java.net.UnknownHostException;
+import java.util.Map;
 
-import com.github.kevinsawicki.http.HttpRequest;
-import com.github.kevinsawicki.http.HttpRequest.HttpRequestException;
- 
 public class CordovaHttpPost extends CordovaHttp implements Runnable {
-    public CordovaHttpPost(String urlString, Map<?, ?> params, Map<String, String> headers, String jsonData, CallbackContext callbackContext) {
-        super(urlString, params, headers, jsonData, callbackContext);
+    public CordovaHttpPost(String urlString, JSONObject params, Map<String, String> headers, CallbackContext callbackContext) throws JSONException {
+        super(urlString, params, headers, callbackContext);
     }
-    
+
     @Override
     public void run() {
         try {
@@ -27,10 +24,12 @@ public class CordovaHttpPost extends CordovaHttp implements Runnable {
             this.setupSecurity(request);
             request.acceptCharset(CHARSET);
             request.headers(this.getHeaders());
-            if(null == this.getJSONData() || this.getJSONData().equals("")){
-              request.form(this.getParams());
-            }else{
-              request.send(this.getJSONData());
+            if (this.getHeaders().containsValue("application/json")
+                    || this.getHeaders().containsValue("Application/Json")
+                    || this.getHeaders().containsValue("Application/JSON")) {
+                request.send(this.getParams().toString());
+            } else {
+                request.form(this.getParamsMap());
             }
             int code = request.code();
             String body = request.body(CHARSET);
@@ -45,7 +44,7 @@ public class CordovaHttpPost extends CordovaHttp implements Runnable {
             }
         } catch (JSONException e) {
             this.respondWithError("There was an error generating the response");
-        }  catch (HttpRequestException e) {
+        } catch (HttpRequestException e) {
             if (e.getCause() instanceof UnknownHostException) {
                 this.respondWithError(0, "The host could not be resolved");
             } else {
