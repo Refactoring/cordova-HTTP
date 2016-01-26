@@ -6,48 +6,42 @@ package com.synconset;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.github.kevinsawicki.http.HttpRequest.HttpRequestException;
 import org.apache.cordova.CallbackContext;
-import org.apache.cordova.file.FileUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-public class CordovaHttpDownload extends CordovaHttp implements Runnable {
-    private String filePath;
-
-    public CordovaHttpDownload(String urlString, JSONObject params, Map<String, String> headers, CallbackContext callbackContext, String filePath) throws JSONException {
+public class CordovaHttpDelete extends CordovaHttp implements Runnable {
+    public CordovaHttpDelete(String urlString, JSONObject params, Map<String, String> headers, CallbackContext callbackContext) throws JSONException {
         super(urlString, params, headers, callbackContext);
-        this.filePath = filePath;
     }
 
     @Override
     public void run() {
         try {
-            HttpRequest request = HttpRequest.get(this.getUrlString(), this.getParamsMap(), true);
+            HttpRequest request = HttpRequest.delete(this.getUrlString());
             this.setupSecurity(request);
             request.acceptCharset(CHARSET);
             request.headers(this.getHeaders());
+            if (this.getHeaders().containsValue("application/json")
+                    || this.getHeaders().containsValue("Application/Json")
+                    || this.getHeaders().containsValue("Application/JSON")) {
+                request.send(this.getParams().toString());
+            } else {
+                request.form(this.getParamsMap());
+            }
             int code = request.code();
-
+            String body = request.body(CHARSET);
             JSONObject response = new JSONObject();
             response.put("status", code);
             if (code >= 200 && code < 300) {
-                URI uri = new URI(filePath);
-                File file = new File(uri);
-                request.receive(file);
-                JSONObject fileEntry = FileUtils.getEntry(file);
-                response.put("file", fileEntry);
+                response.put("data", body);
                 this.getCallbackContext().success(response);
             } else {
-                response.put("error", "There was an error downloading the file");
+                response.put("error", body);
                 this.getCallbackContext().error(response);
             }
-        } catch (URISyntaxException e) {
-            this.respondWithError("There was an error with the given filePath");
         } catch (JSONException e) {
             this.respondWithError("There was an error generating the response");
         } catch (HttpRequestException e) {
